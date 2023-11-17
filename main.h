@@ -1,66 +1,79 @@
-#include "main.h"
+#ifndef MAIN_H
+#define MAIN_H
 
-void print_buffer(char buffer[], int *buff_ind);
-
-/**
- * _printf - Printf function
- * @format: format.
- * Return: Printed chars.
- */
-int _printf(const char *format, ...)
-{
-	int i, printed = 0, printed_chars = 0;
-	int flags, width, precision, size, buff_ind = 0;
-	va_list list;
-	char buffer[BUFF_SIZE];
-
-	if (format == NULL)
-		return (-1);
-
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
-	{
-		if (format[i] != '%')
-		{
-			buffer[buff_ind++] = format[i];
-			if (buff_ind == BUFF_SIZE)
-				print_buffer(buffer, &buff_ind);
-			/* write(1, &format[i], 1);*/
-			printed_chars++;
-		}
-		else
-		{
-			print_buffer(buffer, &buff_ind);
-			flags = get_flags(format, &i);
-			width = get_width(format, &i, list);
-			precision = get_precision(format, &i, list);
-			size = get_size(format, &i);
-			++i;
-			printed = handle_print(format, &i, list, buffer,
-				flags, width, precision, size);
-			if (printed == -1)
-				return (-1);
-			printed_chars += printed;
-		}
-	}
-
-	print_buffer(buffer, &buff_ind);
-
-	va_end(list);
-
-	return (printed_chars);
-}
+#include <stdlib.h>
+#include <stdarg.h>
+#include <unistd.h>
 
 /**
- * print_buffer - Prints the contents of the buffer if it exist
- * @buffer: Array of chars
- * @buff_ind: Index at which to add next char, represents the length.
- */
-void print_buffer(char buffer[], int *buff_ind)
+  * struct flags - struct containing flags to use
+  * when a flag specifier is passed to _printf()
+  * @add: flag for the '+' character
+  * @spc: flag for the ' ' character
+  * @hash: flag for the '#' character
+  */
+typedef struct flags
 {
-	if (*buff_ind > 0)
-		write(1, &buffer[0], *buff_ind);
+	int plus;
+	int space;
+	int hash;
+	int minus;
+	int zero;
+} flags_t;
 
-	*buff_ind = 0;
-}
+/**
+  * struct handler - struct to choose the right function depending
+  * on the format specifier passed to _printf()
+  * @c: format specifier
+  * @p: pointer to the correct printing function
+  */
+typedef struct handler
+{
+	char c;
+	int (*p)(va_list pr, flags_t *p);
+} hr;
+
+/* print_nums */
+int print_int(va_list e, flags_t *p);
+void print_num(int n);
+int print_unsigned(va_list e, flags_t *p);
+int count_digit(int i);
+
+/* print_bases */
+int print_hex(va_list e, flags_t *p);
+int print_HEX(va_list e, flags_t *p);
+int print_bin(va_list e, flags_t *p);
+int print_oct(va_list e, flags_t *p);
+
+/* converter */
+char *convert(unsigned long int num, int base, int lc);
+
+/* _printf */
+int _printf(const char *format, ...);
+
+/* get_print */
+int (*get_print(char s))(va_list, flags_t *);
+
+/* get_flag */
+int get_flag(char s, flags_t *p);
+
+/* print_alpha */
+int print_str(va_list e, flags_t *p);
+int print_char(va_list e, flags_t *p);
+
+/* write_funcs */
+int my_putchar(char c);
+int _putss(char *s);
+
+/* print_custom */
+int print_rot13(va_list e, flags_t *p);
+int print_rev(va_list e, flags_t *p);
+int print_s(va_list e, flags_t *p);
+
+/* print_address */
+int print_addy(va_list e, flags_t *p);
+
+/* print_percent */
+int print_per(va_list e, flags_t *p);
+
+#endif
